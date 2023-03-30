@@ -76,18 +76,29 @@ function getMathHandler() {
       }
     }
   }
-  
+
+  // вы зывается эта функция в случае, если в переданной строке или подстроке нет скобок
   function parseLinearMath(math_str) {
-    // вы зывается эта функция в случае, если в переданной строке или подстроке нет скобок
 
     /***/
 
     function mul_div(math_str) {
+      // подсчитываем количество знаков / и *
       let length = (math_str.match(/\/|\*/g) || []).length
+      // console.log(length)
+
+      // если в полученной строке нет знаков / и *, то возвращаем исходную строку
       if (!length) return math_str
 
+      // сколько встреченных операций * или / столько раз и перебираем строку
+      // чтобы подсчитать результаты для подстрок(кусочков) с умножениями и делениями
       for (let i = 0; i < length; i++) {
         math_str = math_str.replace(
+          // если полученная строка, подстрока этой строки соответствует следующему регулярному выражению,
+          // (вещественное число) (* или /) (вещественное число)
+          // то заменяем эту строку/подстроку на результат функции math, (по сути результат функции getMathFn)
+          // то есть по сути: '5+6*2+3' => '5+12+3'
+          // или: '5+6/2+3' => '5+3+3'
           /(\d+(?:\.\d+)?)(\/|\*)(-?\d+(?:\.\d+)?)/,
           function(_, a, oper, b) {
             return math(a, oper, b)
@@ -98,31 +109,49 @@ function getMathHandler() {
         // В основном, исправляем знаки вида ++, +-, --
         math_str = autoCorrect(math_str)
       }
-
+      // возвращаем полученну строку
       return math_str
     }
 
     function plus_minus(math_str) {
+      // подсчитываем количество знаков + и -
       let length = (math_str.match(/\+|-/g) || []).length
+
+      // если в полученной строке нет знаков / и *, то возвращаем исходную строку
       if (!length) return math_str
 
+      // сколько встреченных операций + или - столько раз и перебираем строку
+      // чтобы подсчитать результаты для подстрок(кусочков) со сложениями и вычитаниями
       for (let i = 0; i < length; i++) {
         math_str = math_str.replace(
+          // если полученная строка, подстрока этой строки соответствует следующему регулярному выражению,
+          // (вещественное число) (+ или -) (вещественное число)
+          // то заменяем эту строку/подстроку на результат функции math, (по сути результат функции getMathFn)
+          // то есть по сути: '5+6' => '11'
+          // или: '5-3' => '2'
           /((?:^-)?\d+(?:\.\d+)?)(\+|-)(\d+(?:\.\d+)?)/,
           function(_, a, oper, b) {
             return math(a, oper, b)
           }
         )
-
+        // Исправляем всё, что может пойти не так.
+        // В основном, исправляем знаки вида ++, +-, --
         math_str = autoCorrect(math_str)
       }
-
+      // возвращаем полученну строку
       return math_str
     }
+    // Исправляем всё, что может пойти не так.
     math_str = autoCorrect(math_str)
 
+    // заменяем в строке все произведения и деления на их результаты:
+    // '2*3' => '6'
+    // '6/3' => '2'
     math_str = mul_div(math_str)
-    
+
+    // заменяем в строке все суммы и разности на их результаты:
+    // '2+3' => '5'
+    // '6-3' => '3'
     math_str = plus_minus(math_str)
 
     return math_str
@@ -156,8 +185,9 @@ function getMathHandler() {
   }
 
   function getMathFn() {
+    let p = Number(document.querySelector('#field-value').innerHTML)
     let local_math = {
-      "+": (a, b, p=11) => {
+      "+": (a, b) => {
         while (a < 0) {
           a = Number(a) + p
         }
@@ -170,6 +200,7 @@ function getMathHandler() {
         }
         return result % p
       },
+
       "-": (a, b, p=11) => {
         while (a < 0) {
           a = Number(a) + p
@@ -183,6 +214,7 @@ function getMathHandler() {
         }
         return result % p
       },
+
       "*": (a, b, p=11) => {
         while (a < 0) {
           a = Number(a) + p
@@ -196,6 +228,7 @@ function getMathHandler() {
         }
         return result % p
       },
+
       "/": (a, b, p=11) => {
         while (a < 0) {
           a = Number(a) + p
@@ -217,6 +250,7 @@ function getMathHandler() {
           else {
               // пока не дойдём до условия (a == 0), потом функция вернёт [b, 0, 1]
               let [g, x, y] = egcd(b % a, a)
+              console.log(g, y - Math.floor(b / a) * x, x)
               return [g, y - Math.floor(b / a) * x, x]
           }
         }
@@ -224,7 +258,7 @@ function getMathHandler() {
         //  x = mulinv(b) mod n, (x * b) % n == 1
         const mulinv = (b, n) => {
             let [g, x, _] = egcd(b, n)
-            // console.log(g,x,_)
+            console.log(g,x,_)
             if (g == 1) {
                 return x % n
             }
@@ -261,8 +295,14 @@ function getMathHandler() {
 // '-1 +1 -1 +1 -1 +1 -1 + 0 + 0 + 0 - 0'
 // '5-7'
 
-const applyMath = getMathHandler()
+// const applyMath = getMathHandler()
 
-console.log(applyMath('5*5*-5*5*-4/0+2'))
-console.log(applyMath('4*(1*14  - - 4 *-5)*+4/(15/2)'))
-console.log(applyMath('3/-7'))
+// console.log(applyMath('5*7*-5*5*-4/1+2'))
+// console.log(applyMath('4*(1*14  - - 4 *-5)*+4/(15/2)'))
+// console.log(applyMath('(8*5)/2'))
+// console.log(applyMath('-1 +1 -1 +1 -1 +1 -1 + 0 + 0 + 0 - 0'))
+
+let submit = document.querySelector('#submit-solution').addEventListener(() => {
+  const applyMath = getMathHandler()
+  applyMath(document.querySelector('#math-expr'))
+}) 
