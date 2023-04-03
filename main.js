@@ -185,7 +185,8 @@ function getMathHandler() {
   }
 
   function getMathFn() {
-    let p = Number(document.querySelector('#field-value').innerHTML)
+    let p = Number(document.querySelector('#field-value').value)
+
     let local_math = {
       "+": (a, b) => {
         while (a < 0) {
@@ -201,7 +202,8 @@ function getMathHandler() {
         return result % p
       },
 
-      "-": (a, b, p=11) => {
+      "-": (a, b) => {
+        console.log(p)
         while (a < 0) {
           a = Number(a) + p
         }
@@ -215,7 +217,7 @@ function getMathHandler() {
         return result % p
       },
 
-      "*": (a, b, p=11) => {
+      "*": (a, b) => {
         while (a < 0) {
           a = Number(a) + p
         }
@@ -229,7 +231,7 @@ function getMathHandler() {
         return result % p
       },
 
-      "/": (a, b, p=11) => {
+      "/": (a, b) => {
         while (a < 0) {
           a = Number(a) + p
         }
@@ -300,9 +302,46 @@ function getMathHandler() {
 // console.log(applyMath('5*7*-5*5*-4/1+2'))
 // console.log(applyMath('4*(1*14  - - 4 *-5)*+4/(15/2)'))
 // console.log(applyMath('(8*5)/2'))
-// console.log(applyMath('-1 +1 -1 +1 -1 +1 -1 + 0 + 0 + 0 - 0'))
+// console.log(applyMath('5()(1*2 -3)(-5*-5)1(1)'))
 
-let submit = document.querySelector('#submit-solution').addEventListener(() => {
-  const applyMath = getMathHandler()
-  applyMath(document.querySelector('#math-expr'))
+function primality(n) {
+  for(let i = 2; i < n; i++) {
+     if(n % i === 0) return false;
+  }
+  return n > 1;
+ }
+
+
+document.querySelector('#submit-solution').addEventListener('click', () => {
+
+  try {
+    // если число - не простое, то прокидываем ошибку
+    if (!primality(Number(document.querySelector('#field-value').value))) {
+      throw new Error('Значение поля не является простым число')
+    }
+
+    const applyMath = getMathHandler()
+    console.log('awdawd', document.querySelector('#math-expr').value)
+
+    // Удаляем все пробелы, заменяем все \ на /
+    let mathStr = document.querySelector('#math-expr').value.replace(/\\/g, "/").replaceAll(' ', "")
+
+
+    // если хотя бы 1 символ из введённой строки не соответствуют необходимому символу, то прокидываем ошибку
+    for (let el of mathStr) {
+      if (['(', ')', '+', '-', '*', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(el) === -1) {
+        console.log(el)
+        throw new Error('Введите корректное значение выражения')
+      }
+    }
+
+    let result = applyMath(mathStr)
+    document.querySelector('#response').innerHTML = `Ответ: ${result}`
+  } catch (error) {
+    // console.log(error)
+    // ловим ошибку
+    document.querySelector('#response').innerHTML = `Ошибка: ${error.message}`
+  }
+
+  // document.querySelector('#response').innerHTML = '123123123'
 }) 
