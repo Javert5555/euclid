@@ -245,24 +245,57 @@ function getMathHandler() {
           // return 0
         }
         // Расширенный алгоритм евклида (через рекурсию) \\
-        const egcd = (a, b) => {
-          if (a == 0) {
-              return [b, 0, 1]
+        // например b = 7
+        // например p = 11
+        const egcd = (b, p) => {
+          if (b == 0) {
+            // console.log(`b: ${b}, p: ${p}`)
+              return [p, 0, 1]
           }
           else {
-              // пока не дойдём до условия (a == 0), потом функция вернёт [b, 0, 1]
-              let [g, x, y] = egcd(b % a, a)
-              console.log(g, y - Math.floor(b / a) * x, x)
-              return [g, y - Math.floor(b / a) * x, x]
+              // передаём:
+              // b, p
+              // 7, 11
+              // 4, 7
+              // 3, 4
+              // 1, 3
+              // 0, 1
+              // пока не дойдём до условия (b == 0), потом функция вернёт [p, 0, 1]
+              // так как рекурсия мы только сейчас начали выходить из функции последней
+              // вложенной функции с аргументами 0, 1; возвращают эти функии следующее:
+              // g, x, y
+              // 1, 0, 1
+              // 1, 1 - (3 / 1) * 0, 0
+              // 1, 0 - (4 / 3) * 1, 1
+              // 1, 1 - (7 / 4) * -1, -1
+              // 1, -1 - (11 / 7) * 2, 2
+              
+              // console.log(p % b, b)
+              let [g, x, y] = egcd(p % b, b)
+              // console.log(g,x,y)
+              // console.log(g, y - Math.floor(p / b) * x, x)
+              console.log(y, p, b, x, '|||', y - Math.floor(p / b) * x)
+              // y, p, b, x ||| y - Math.floor(p / b) * x)
+              // 1, 3, 1, 0 ||| 1
+              // 0, 4, 3, 1 ||| -1
+              // 1, 7, 4, -1 ||| 2
+              // -1, 11, 7, 2 ||| -3
+              // из выражения g = p * x1 + a * a^-1, (g=1)
+              // x1 и есть в данном случае y-Math.floor(p / b) * x
+              // 
+              // пример из тетради:
+              // 1=4-3*1 ==> здесь 1=g, y=1, 3=Math.floor(p / b) (где p=3, b=1), x=0, 1=y-Math.floor(p / b) * x
+              return [g, y - Math.floor(p / b) * x, x]
           }
         }
        
         //  x = mulinv(b) mod n, (x * b) % n == 1
-        const mulinv = (b, n) => {
-            let [g, x, _] = egcd(b, n)
-            console.log(g,x,_)
+        const mulinv = (b, p) => {
+            let [g, x, _] = egcd(b, p)
+            // console.log(g,x,_)
+            // если результат x получился отрицательным, это условие просто вернёт этот x
             if (g == 1) {
-                return x % n
+                return x % p
             }
         }
 
@@ -304,6 +337,7 @@ function getMathHandler() {
 // console.log(applyMath('(8*5)/2'))
 // console.log(applyMath('5()(1*2 -3)(-5*-5)1(1)'))
 
+// функция проверки на простое число
 function primality(n) {
   for(let i = 2; i < n; i++) {
      if(n % i === 0) return false;
@@ -321,7 +355,7 @@ document.querySelector('#submit-solution').addEventListener('click', () => {
     }
 
     const applyMath = getMathHandler()
-    console.log('awdawd', document.querySelector('#math-expr').value)
+    // console.log('awdawd', document.querySelector('#math-expr').value)
 
     // Удаляем все пробелы, заменяем все \ на /
     let mathStr = document.querySelector('#math-expr').value.replace(/\\/g, "/").replaceAll(' ', "")
@@ -330,7 +364,7 @@ document.querySelector('#submit-solution').addEventListener('click', () => {
     // если хотя бы 1 символ из введённой строки не соответствуют необходимому символу, то прокидываем ошибку
     for (let el of mathStr) {
       if (['(', ')', '+', '-', '*', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(el) === -1) {
-        console.log(el)
+        // console.log(el)
         throw new Error('Введите корректное значение выражения')
       }
     }
